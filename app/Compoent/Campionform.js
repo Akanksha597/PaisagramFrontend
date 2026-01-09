@@ -2,7 +2,7 @@
 
 import { ToastContainer, toast } from "react-toastify";
 import { useRouter, useSearchParams } from "next/navigation";
-import "react-toastify/dist/ReactToastify.css";
+
 
 export default function ContactFormDesign() {
   const router = useRouter();
@@ -14,52 +14,58 @@ export default function ContactFormDesign() {
     e.target.value = e.target.value.replace(/[^0-9]/g, "");
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const formData = new FormData(e.target);
+  const formData = new FormData(e.target);
 
-    const data = {
-      eventName: formData.get("eventName"),
-      name: formData.get("name"),
-      email: formData.get("email"),
-      mobile: formData.get("mobile"),
-      occupation: formData.get("occupation"),
-    };
-
-    if (
-      !data.name ||
-      !data.email ||
-      !data.mobile ||
-      data.mobile.length !== 10 ||
-      !data.occupation
-    ) {
-      toast.error("❌ Please fill all fields correctly");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        "http://localhost:5000/api/campaion/submit",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(data),
-        }
-      );
-
-      if (!response.ok) throw new Error();
-
-      toast.success("✅ Form submitted successfully!");
-      e.target.reset();
-
-      setTimeout(() => {
-        router.push("/Thankyou");
-      }, 1500);
-    } catch (error) {
-      toast.error("❌ Failed to submit form");
-    }
+  const data = {
+    eventName: formData.get("eventName") || "General",
+    name: formData.get("name"),
+    email: formData.get("email"),
+    mobile: formData.get("mobile"),
+    occupation: formData.get("occupation"),
   };
+
+  if (
+    !data.name ||
+    !data.email ||
+    !data.mobile ||
+    data.mobile.length !== 10 ||
+    !data.occupation
+  ) {
+    toast.error("❌ Please fill all fields correctly");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "https://paisagram-backend.vercel.app/api/campaion/submit",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to submit");
+    }
+
+    toast.success("✅ Form submitted successfully!");
+    e.target.reset();
+
+    setTimeout(() => {
+      router.push("/Thankyou");
+    }, 1500);
+  } catch (error) {
+    console.error(error);
+    toast.error("❌ Failed to submit form");
+  }
+};
+
 
   return (
     <>

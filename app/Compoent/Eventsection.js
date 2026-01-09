@@ -12,7 +12,7 @@ export default function EventSelectPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/events");
+        const res = await fetch("https://paisagram-backend.vercel.app/api/events");
 
         if (!res.ok) {
           throw new Error("Failed to fetch events");
