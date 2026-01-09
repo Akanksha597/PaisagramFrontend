@@ -39,14 +39,12 @@ const verifyOtp = async () => {
   const mobile = document.querySelector("input[name='mobile']").value;
 
   try {
-    const res = await fetch(
-      "https://paisagram-backend.vercel.app/api/otp/verify",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mobile, otp }),
-      }
-    );
+    await fetch("https://your-vercel-domain.vercel.app/api/otp/send", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ mobile: "1234567890" }),
+});
+
 
     if (!res.ok) throw new Error();
 
