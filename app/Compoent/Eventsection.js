@@ -31,14 +31,21 @@ export default function EventSelectPage() {
     fetchEvents();
   }, []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const eventName = e.target.eventName.value;
+const handleSubmit = (e) => {
+  e.preventDefault();
+  const value = e.target.eventName.value;
 
-    if (!eventName) return;
+  if (!value) return;
 
-    router.push(`/Campioninfo?event=${encodeURIComponent(eventName)}`);
-  };
+  const [eventName, eventCategory] = value.split("|");
+
+  router.push(
+    `/Campioninfo?event=${encodeURIComponent(
+      eventName
+    )}&type=${eventCategory}`
+  );
+};
+
 
   return (
     <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light px-3">
@@ -61,11 +68,15 @@ export default function EventSelectPage() {
             {loading ? "Loading events..." : "Select Event"}
           </option>
 
-          {events.map((event) => (
-            <option key={event._id} value={event.eventName}>
-              {event.eventName}
-            </option>
-          ))}
+         {events.map((event) => (
+  <option
+    key={event._id}
+    value={`${event.eventName}|${event.eventCategory}`}
+  >
+    {event.eventName}
+  </option>
+))}
+
         </select>
 
         <button

@@ -9,6 +9,56 @@ export default function ContactFormDesign() {
 
   const eventFromUrl = searchParams.get("event");
 
+const eventType = searchParams.get("type"); // individual | group
+const [otpSent, setOtpSent] = useState(false);
+const [otpVerified, setOtpVerified] = useState(false);
+const [otp, setOtp] = useState("");
+
+const sendOtp = async () => {
+  const mobile = document.querySelector("input[name='mobile']").value;
+
+  if (mobile.length !== 10) {
+    showToast("Enter valid 10-digit mobile", "danger");
+    return;
+  }
+
+  try {
+    await fetch("https://paisagram-backend.vercel.app/api/otp/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mobile }),
+    });
+
+    setOtpSent(true);
+    showToast("OTP sent successfully");
+  } catch {
+    showToast("Failed to send OTP", "danger");
+  }
+};
+const verifyOtp = async () => {
+  const mobile = document.querySelector("input[name='mobile']").value;
+
+  try {
+    const res = await fetch(
+      "https://paisagram-backend.vercel.app/api/otp/verify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, otp }),
+      }
+    );
+
+    if (!res.ok) throw new Error();
+
+    setOtpVerified(true);
+    showToast("Mobile verified successfully");
+  } catch {
+    showToast("Invalid OTP", "danger");
+  }
+};
+
+
+
   const [toast, setToast] = useState({
     show: false,
     message: "",
@@ -27,49 +77,59 @@ export default function ContactFormDesign() {
     }, 3000);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+ const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    const formData = new FormData(e.target);
+  // ✅ BLOCK submit if individual event & OTP not verified
+  if (eventType === "individual" && !otpVerified) {
+    showToast("Please verify mobile number", "danger");
+    return;
+  }
 
-    const data = {
-      eventName: formData.get("eventName") || "General",
-      name: formData.get("name"),
-      email: formData.get("email"),
-      mobile: formData.get("mobile"),
-      occupation: formData.get("occupation"),
-    };
+  const formData = new FormData(e.target);
 
-    if (!data.name || !data.mobile || data.mobile.length !== 10) {
-      showToast("Name and valid 10-digit mobile number are required", "danger");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        "https://paisagram-backend.vercel.app/api/campaion/submit",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        }
-      );
-
-      if (!response.ok) throw new Error("Submit failed");
-
-      showToast("Form submitted successfully!", "success");
-      e.target.reset();
-
-      setTimeout(() => {
-        router.push("/Thankyou");
-      }, 1500);
-    } catch (error) {
-      console.error(error);
-      showToast("Failed to submit form", "danger");
-    }
+  const data = {
+    eventName: formData.get("eventName") || "General",
+    eventCategory: eventType,              // ✅ SEND THIS
+    name: formData.get("name"),
+    email: formData.get("email"),
+    mobile: formData.get("mobile"),
+    occupation: formData.get("occupation"),
+    isMobileVerified: otpVerified,          // ✅ SEND THIS
   };
+
+  // Basic validation
+  if (!data.name || !data.mobile || data.mobile.length !== 10) {
+    showToast("Name and valid 10-digit mobile number are required", "danger");
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      "https://paisagram-backend.vercel.app/api/campaion/submit",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      }
+    );
+
+    if (!response.ok) throw new Error("Submit failed");
+
+    showToast("Form submitted successfully!", "success");
+    e.target.reset();
+
+    setTimeout(() => {
+      router.push("/Thankyou");
+    }, 1500);
+  } catch (error) {
+    console.error(error);
+    showToast("Failed to submit form", "danger");
+  }
+};
+
 
   return (
     <>
@@ -128,17 +188,52 @@ export default function ContactFormDesign() {
                   </div>
 
                   {/* MOBILE */}
-                  <div className="mb-3 border-bottom">
-                    <input
-                      type="text"
-                      name="mobile"
-                      className="form-control border-0 rounded-0 px-0"
-                      placeholder="Mobile number *"
-                      maxLength={10}
-                      onInput={handleMobileInput}
-                      required
-                    />
-                  </div>
+                {/* MOBILE */}
+<div className="mb-3 border-bottom">
+  <input
+    type="text"
+    name="mobile"
+    className="form-control border-0 rounded-0 px-0"
+    placeholder="Mobile number *"
+    maxLength={10}
+    onInput={handleMobileInput}
+    required
+    disabled={otpVerified}
+  />
+</div>
+
+{/* OTP SECTION */}
+{eventType === "individual" && !otpVerified && (
+  <>
+    {!otpSent ? (
+      <button
+        type="button"
+        className="btn btn-outline-primary mb-3"
+        onClick={sendOtp}
+      >
+        Send OTP
+      </button>
+    ) : (
+      <>
+        <input
+          type="text"
+          className="form-control mb-2"
+          placeholder="Enter OTP"
+          value={otp}
+          onChange={(e) => setOtp(e.target.value)}
+        />
+        <button
+          type="button"
+          className="btn btn-success mb-3"
+          onClick={verifyOtp}
+        >
+          Verify OTP
+        </button>
+      </>
+    )}
+  </>
+)}
+
 
                   {/* EMAIL */}
                   <div className="mb-3 border-bottom">
