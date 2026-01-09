@@ -1,8 +1,7 @@
 "use client";
 
-import { ToastContainer, toast } from "react-toastify";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-
 
 export default function ContactFormDesign() {
   const router = useRouter();
@@ -10,82 +9,103 @@ export default function ContactFormDesign() {
 
   const eventFromUrl = searchParams.get("event");
 
+  const [toast, setToast] = useState({
+    show: false,
+    message: "",
+    type: "success",
+  });
+
   const handleMobileInput = (e) => {
     e.target.value = e.target.value.replace(/[^0-9]/g, "");
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  const formData = new FormData(e.target);
-
-  const data = {
-    eventName: formData.get("eventName") || "General",
-    name: formData.get("name"),
-    email: formData.get("email"),
-    mobile: formData.get("mobile"),
-    occupation: formData.get("occupation"),
-  };
-
-  if (
-    !data.name ||
-    !data.email ||
-    !data.mobile ||
-    data.mobile.length !== 10 ||
-    !data.occupation
-  ) {
-    toast.error("❌ Please fill all fields correctly");
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      "https://paisagram-backend.vercel.app/api/campaion/submit",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Failed to submit");
-    }
-
-    toast.success("✅ Form submitted successfully!");
-    e.target.reset();
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
 
     setTimeout(() => {
-      router.push("/Thankyou");
-    }, 1500);
-  } catch (error) {
-    console.error(error);
-    toast.error("❌ Failed to submit form");
-  }
-};
+      setToast({ show: false, message: "", type });
+    }, 3000);
+  };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.target);
+
+    const data = {
+      eventName: formData.get("eventName") || "General",
+      name: formData.get("name"),
+      email: formData.get("email"),
+      mobile: formData.get("mobile"),
+      occupation: formData.get("occupation"),
+    };
+
+    if (!data.name || !data.mobile || data.mobile.length !== 10) {
+      showToast("Name and valid 10-digit mobile number are required", "danger");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        "https://paisagram-backend.vercel.app/api/campaion/submit",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        }
+      );
+
+      if (!response.ok) throw new Error("Submit failed");
+
+      showToast("Form submitted successfully!", "success");
+      e.target.reset();
+
+      setTimeout(() => {
+        router.push("/Thankyou");
+      }, 1500);
+    } catch (error) {
+      console.error(error);
+      showToast("Failed to submit form", "danger");
+    }
+  };
 
   return (
     <>
-      <ToastContainer position="top-right" autoClose={3000} />
+      {/* ================= BOOTSTRAP TOAST ================= */}
+      {toast.show && (
+        <div
+          className="toast-container position-fixed top-0 end-0 p-3"
+          style={{ zIndex: 9999 }}
+        >
+          <div className={`toast show text-bg-${toast.type}`}>
+            <div className="d-flex">
+              <div className="toast-body">{toast.message}</div>
+              <button
+                type="button"
+                className="btn-close btn-close-white me-2 m-auto"
+                onClick={() => setToast({ ...toast, show: false })}
+              ></button>
+            </div>
+          </div>
+        </div>
+      )}
 
+      {/* ================= FORM UI ================= */}
       <div className="min-vh-100 d-flex align-items-center justify-content-center bg-light px-3">
         <div className="w-100" style={{ maxWidth: "900px" }}>
-
           <h3 className="fw-bold text-center mb-4">
-            Welcome To <span style={{ color: "#EF7F1A" }}>Paisa</span>
+            Welcome To{" "}
+            <span style={{ color: "#EF7F1A" }}>Paisa</span>
             <span style={{ color: "#0163AB" }}>gram</span>
           </h3>
 
           <div className="bg-white rounded-4 shadow-lg p-4 p-md-5">
             <div className="row align-items-center g-4">
-
               <div className="col-md-6">
                 <form onSubmit={handleSubmit}>
-
-                  {/* AUTO-FILLED EVENT */}
+                  {/* EVENT NAME */}
                   <div className="mb-3 border-bottom">
                     <input
                       type="text"
@@ -96,6 +116,7 @@ const handleSubmit = async (e) => {
                     />
                   </div>
 
+                  {/* NAME */}
                   <div className="mb-3 border-bottom">
                     <input
                       type="text"
@@ -106,16 +127,7 @@ const handleSubmit = async (e) => {
                     />
                   </div>
 
-                  <div className="mb-3 border-bottom">
-                    <input
-                      type="email"
-                      name="email"
-                      className="form-control border-0 rounded-0 px-0"
-                      placeholder="Enter your email *"
-                      required
-                    />
-                  </div>
-
+                  {/* MOBILE */}
                   <div className="mb-3 border-bottom">
                     <input
                       type="text"
@@ -128,13 +140,23 @@ const handleSubmit = async (e) => {
                     />
                   </div>
 
+                  {/* EMAIL */}
+                  <div className="mb-3 border-bottom">
+                    <input
+                      type="email"
+                      name="email"
+                      className="form-control border-0 rounded-0 px-0"
+                      placeholder="Enter your email"
+                    />
+                  </div>
+
+                  {/* OCCUPATION */}
                   <div className="mb-4 border-bottom">
                     <select
                       name="occupation"
                       className="form-select border-0 rounded-0 px-0"
-                      required
                     >
-                      <option value="">Select occupation *</option>
+                      <option value="">Select occupation</option>
                       <option>Student</option>
                       <option>Employee</option>
                       <option>Business Owner</option>
@@ -146,10 +168,10 @@ const handleSubmit = async (e) => {
                   <button className="btn btn-warning px-5 py-2">
                     Submit
                   </button>
-
                 </form>
               </div>
 
+              {/* IMAGE */}
               <div className="col-md-6 text-center d-none d-md-block">
                 <img
                   src="/Assests/camimage.jpeg"
@@ -158,7 +180,6 @@ const handleSubmit = async (e) => {
                   style={{ maxWidth: "300px" }}
                 />
               </div>
-
             </div>
           </div>
         </div>
