@@ -38,22 +38,30 @@ const sendOtp = async () => {
 const verifyOtp = async () => {
   const mobile = document.querySelector("input[name='mobile']").value;
 
-  try {
-    await fetch("https://your-vercel-domain.vercel.app/api/otp/send", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ mobile: "1234567890" }),
-});
+  if (otp.length !== 6) {
+    showToast("Enter valid 6-digit OTP", "danger");
+    return;
+  }
 
+  try {
+    const res = await fetch(
+      "https://paisagram-backend.vercel.app/api/otp/verify",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mobile, otp }),
+      }
+    );
 
     if (!res.ok) throw new Error();
 
     setOtpVerified(true);
-    showToast("Mobile verified successfully");
-  } catch {
+    showToast("Mobile verified successfully", "success");
+  } catch (err) {
     showToast("Invalid OTP", "danger");
   }
 };
+
 
 
 
