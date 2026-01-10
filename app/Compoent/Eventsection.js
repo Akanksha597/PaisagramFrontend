@@ -40,7 +40,7 @@ const handleSubmit = (e) => {
   const [eventName, eventCategory] = value.split("|");
 
   router.push(
-    `/Campioninfo?event=${encodeURIComponent(
+    `/Campaign?event=${encodeURIComponent(
       eventName
     )}&type=${eventCategory}`
   );
