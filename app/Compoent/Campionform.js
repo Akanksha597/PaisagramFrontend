@@ -23,11 +23,22 @@ const sendOtp = async () => {
   }
 
   try {
-    await fetch("https://paisagram-backend.vercel.app/api/otp/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ mobile }),
-    });
+   const res = await fetch("https://paisagramsbackend.vercel.app/api/otp/send", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ mobile }),
+});
+
+const data = await res.json();
+
+if (!res.ok || !data.success) {
+  showToast(data.message || "OTP sending failed", "danger");
+  return;
+}
+
+setOtpSent(true);
+showToast("OTP sent successfully", "success");
+
 
     setOtpSent(true);
     showToast("OTP sent successfully");
