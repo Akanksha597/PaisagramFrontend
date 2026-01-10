@@ -23,7 +23,7 @@ const sendOtp = async () => {
   }
 
   try {
-   const res = await fetch("https://paisagramsbackend.vercel.app/api/otp/send", {
+   const res = await fetch("https://paisagramsbackend.vercel.app/api/otp/send-otp", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ mobile }),
@@ -56,7 +56,7 @@ const verifyOtp = async () => {
 
   try {
     const res = await fetch(
-      "https://paisagram-backend.vercel.app/api/otp/verify",
+      "https://paisagramsbackend.vercel.app/api/otp/verify-otp",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -123,7 +123,7 @@ const verifyOtp = async () => {
 
   try {
     const response = await fetch(
-      "https://paisagram-backend.vercel.app/api/campaion/submit",
+      "https://paisagramsbackend.vercel.app/api/campaion/submit",
       {
         method: "POST",
         headers: {
